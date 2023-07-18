@@ -136,7 +136,7 @@ object EssentialStreams {
       override def reduce(x: Long, y: Long): Long = x + y
     })
 
-    sumByKey_v2.print()
+    keyedNumbers.print()
     env.execute()
   }
 
