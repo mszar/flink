@@ -67,10 +67,27 @@ object EssentialStreams {
 
   }
 
+  def fizzBuzzExercise2(): Unit = {
+    val env: StreamExecutionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment
+    //val numbers: DataStream[Int] = env.fromElements((1 to 100): _*)
+    val numbers = env.fromSequence(1, 100)
 
+    val fizzbuzz = numbers
+      .map[FizzBuzzResult] {(x: Long) => x match {
+        case n if n % 3 == 0 && n % 5 == 0 => FizzBuzzResult(n, "fizzbuzz")
+        case n if n % 3 == 0 => FizzBuzzResult(n, "fizz")
+        case n if n % 5 == 0 => FizzBuzzResult(n, "buzz")
+        case n => FizzBuzzResult(n, s"$n")
+      }}
+
+
+    fizzbuzz.writeAsText("output/fizzbuzz.txt").setParallelism(1)
+    env.execute()
+
+  }
 
   def main(args: Array[String]): Unit = {
-    fizzBuzzExercise()
+    fizzBuzzExercise2()
   }
 
 }
