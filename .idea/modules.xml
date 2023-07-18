@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/flink.iml" filepath="$PROJECT_DIR$/.idea/flink.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/flink-essentials.iml" filepath="$PROJECT_DIR$/.idea/modules/flink-essentials.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/flink-essentials-build.iml" filepath="$PROJECT_DIR$/.idea/modules/flink-essentials-build.iml" />
     </modules>
   </component>
 </project>
