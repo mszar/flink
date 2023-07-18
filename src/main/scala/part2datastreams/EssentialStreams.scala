@@ -1,9 +1,11 @@
 package part2datastreams
 
+import org.apache.flink.api.common.functions.{FlatMapFunction, MapFunction}
 import org.apache.flink.api.common.serialization.SimpleStringEncoder
 import org.apache.flink.core.fs.Path
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink
 import org.apache.flink.streaming.api.scala._
+import org.apache.flink.util.Collector
 
 object EssentialStreams {
 
@@ -100,6 +102,29 @@ object EssentialStreams {
     env.execute()
 
   }
+
+  def demoExplicitTransformations(): Unit = {
+    val env: StreamExecutionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment
+    val numbers: DataStream[Long] = env.fromSequence(1, 100)
+
+    val doubledNumbers = numbers.map(_ * 2)
+    val doubledNumbers_v2 = numbers.map(new MapFunction[Long, Long] {
+      override def map(value: Long): Long = value * 2
+    })
+
+    val expandedNumbers = numbers.flatMap(n => (1 to n).toList)
+    val expandedNumbers = numbers.flatMap(new FlatMapFunction[Long, Long] {
+      override def flatMap(value: Long, out: Collector[Long]): Unit =
+        (1 to value).foreach {
+          out.collect(i)
+        }
+    })
+
+
+  }
+
+  def
+
 
   def main(args: Array[String]): Unit = {
     fizzBuzzExercise()
