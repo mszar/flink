@@ -1,8 +1,9 @@
 package part2datastreams
 
-import org.apache.flink.api.common.functions.{FlatMapFunction, MapFunction}
+import org.apache.flink.api.common.functions.{FlatMapFunction, MapFunction, ReduceFunction}
 import org.apache.flink.api.common.serialization.SimpleStringEncoder
 import org.apache.flink.core.fs.Path
+import org.apache.flink.streaming.api.functions.ProcessFunction
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.util.Collector
@@ -113,17 +114,30 @@ object EssentialStreams {
     })
 
     val expandedNumbers = numbers.flatMap(n => (1 to n).toList)
-    val expandedNumbers = numbers.flatMap(new FlatMapFunction[Long, Long] {
+    val expandedNumbers_v2 = numbers.flatMap(new FlatMapFunction[Long, Long] {
       override def flatMap(value: Long, out: Collector[Long]): Unit =
         (1 to value).foreach {
           out.collect(i)
         }
     })
 
+    // process method
+    val expandedNumbers_v3 = numbers.process(new ProcessFunction[Long,Long] {
+      override def processElement(value: Long, ctx: ProcessFunction[Long, Long]#Context, out: Collector[Long]): Unit =
+        (1 to value).foreach {
+          out.collect(i)
+        }
+    })
+
+    val keyedNumbers: KeyedStream[Long, Boolean] = numbers.keyBy(n => n % 2 == 0)
+    val sumByKey = keyedNumbers.reduce(_ + _)
+
+    val sumByKey_v2 = keyedNumbers.reduce(new ReduceFunction[Long] {
+      override def reduce(x: Long, y: Long): Long = x + y
+    })
 
   }
 
-  def
 
 
   def main(args: Array[String]): Unit = {
