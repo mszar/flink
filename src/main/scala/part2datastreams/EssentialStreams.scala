@@ -1,5 +1,8 @@
 package part2datastreams
 
+import org.apache.flink.api.common.serialization.SimpleStringEncoder
+import org.apache.flink.core.fs.Path
+import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink
 import org.apache.flink.streaming.api.scala._
 
 object EssentialStreams {
@@ -62,7 +65,19 @@ object EssentialStreams {
       .filter(_.output == "fizzbuzz") // DataStream[FizzBuzzResult]
       .map(_.n) // DataStream[Long]
 
-    fizzbuzz.writeAsText("output/fizzbuzz.txt").setParallelism(1)
+    // deprecated - alternative is sink
+    //fizzbuzz.writeAsText("output/fizzbuzz.txt").setParallelism(1)
+
+    fizzbuzz.addSink(
+      StreamingFileSink
+        .forRowFormat(
+          new Path("output/streaming_sink"),
+          new SimpleStringEncoder[Long]("UTF-8")
+        )
+        .build()
+    ).setParallelism(1)
+
+
     env.execute()
 
   }
@@ -87,7 +102,7 @@ object EssentialStreams {
   }
 
   def main(args: Array[String]): Unit = {
-    fizzBuzzExercise2()
+    fizzBuzzExercise()
   }
 
 }
