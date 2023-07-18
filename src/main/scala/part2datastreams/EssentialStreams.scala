@@ -113,18 +113,18 @@ object EssentialStreams {
       override def map(value: Long): Long = value * 2
     })
 
-    val expandedNumbers = numbers.flatMap(n => (1 to n).toList)
+    val expandedNumbers = numbers.flatMap(n => Range.Long(1, n, 1).toList)
     val expandedNumbers_v2 = numbers.flatMap(new FlatMapFunction[Long, Long] {
-      override def flatMap(value: Long, out: Collector[Long]): Unit =
-        (1 to value).foreach { i =>
+      override def flatMap(n: Long, out: Collector[Long]): Unit =
+        Range.Long(1, n, 1).foreach { i =>
           out.collect(i)
         }
     })
 
     // process method
     val expandedNumbers_v3 = numbers.process(new ProcessFunction[Long,Long] {
-      override def processElement(value: Long, ctx: ProcessFunction[Long, Long]#Context, out: Collector[Long]): Unit =
-        (1 to value).foreach { i =>
+      override def processElement(n: Long, ctx: ProcessFunction[Long, Long]#Context, out: Collector[Long]): Unit =
+        Range.Long(1, n, 1).foreach { i =>
           out.collect(i)
         }
     })
@@ -136,12 +136,14 @@ object EssentialStreams {
       override def reduce(x: Long, y: Long): Long = x + y
     })
 
+    sumByKey_v2.print()
+    env.execute()
   }
 
 
 
   def main(args: Array[String]): Unit = {
-    fizzBuzzExercise()
+    demoExplicitTransformations()
   }
 
 }
