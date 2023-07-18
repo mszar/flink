@@ -116,7 +116,7 @@ object EssentialStreams {
     val expandedNumbers = numbers.flatMap(n => (1 to n).toList)
     val expandedNumbers_v2 = numbers.flatMap(new FlatMapFunction[Long, Long] {
       override def flatMap(value: Long, out: Collector[Long]): Unit =
-        (1 to value).foreach {
+        (1 to value).foreach { i =>
           out.collect(i)
         }
     })
@@ -124,7 +124,7 @@ object EssentialStreams {
     // process method
     val expandedNumbers_v3 = numbers.process(new ProcessFunction[Long,Long] {
       override def processElement(value: Long, ctx: ProcessFunction[Long, Long]#Context, out: Collector[Long]): Unit =
-        (1 to value).foreach {
+        (1 to value).foreach { i =>
           out.collect(i)
         }
     })
