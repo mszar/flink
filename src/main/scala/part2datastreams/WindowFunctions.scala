@@ -148,8 +148,22 @@ object WindowFunctions {
     env.execute()
   }
 
+    val TwoSecondsTumblingWindow: AllWindowedStream[ServerEvent, TimeWindow] = eventStream.windowAll(TumblingEventTimeWindows.of(Time.seconds(2)))
+    class CountByWindowAll_exe extends AllWindowFunction[ServerEvent, String, TimeWindow] {
+      override def apply(window: TimeWindow, input: Iterable[ServerEvent], out: Collector[String]): Unit = {
+        val registrationEventCount = input.count(event => event.isInstanceOf[PlayerRegistered])
+        out.collect(s"Window [${window.getStart} - ${window.getEnd}] $registrationEventCount")
+      }
+    }
+
+    def CountByTwo(): Unit = {
+      val registrationsPerTwoSeconds = TwoSecondsTumblingWindow.apply(new CountByWindowAll_exe)
+      registrationsPerTwoSeconds.print()
+      env.execute()
+    }
+
   def main(args: Array[String]): Unit = {
-    demoSessionWindows()
+    CountByTwo()
   }
 
 }
