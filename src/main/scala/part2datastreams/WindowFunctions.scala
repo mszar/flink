@@ -5,7 +5,7 @@ import org.apache.flink.api.common.eventtime.{SerializableTimestampAssigner, Wat
 import org.apache.flink.api.common.functions.AggregateFunction
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.scala.function.{AllWindowFunction, ProcessAllWindowFunction, ProcessWindowFunction, WindowFunction}
-import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows
+import org.apache.flink.streaming.api.windowing.assigners.{EventTimeSessionWindows, SlidingEventTimeWindows, TumblingEventTimeWindows}
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 import org.apache.flink.util.Collector
@@ -128,11 +128,28 @@ object WindowFunctions {
     finalStream.print()
     env.execute()
   }
+  // Sliding windows
+  def demoSlidingAllWindow(): Unit = {
+    val windowSize: Time = Time.seconds(3 )
+    val slidingTime: Time = Time.seconds(1)
 
+    val slidingWindowsAll = eventStream.windowAll(SlidingEventTimeWindows.of(windowSize, slidingTime))
 
+    val registrationCountByWindow = slidingWindowsAll.apply(new CountByWindowAll)
+    registrationCountByWindow.print()
+    env.execute()
+  }
+
+  // session windows
+  def demoSessionWindows(): Unit = {
+    val groupBySessionWindows = eventStream.windowAll(EventTimeSessionWindows.withGap(Time.seconds(1)))
+    val countBySessionWindows = groupBySessionWindows.apply(new CountByWindowAll)
+    countBySessionWindows.print()
+    env.execute()
+  }
 
   def main(args: Array[String]): Unit = {
-    demoCountByTypeByWindow_v2()
+    demoSessionWindows()
   }
 
 }
