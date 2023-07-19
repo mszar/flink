@@ -4,7 +4,7 @@ import generators.gaming._
 import org.apache.flink.api.common.eventtime.{SerializableTimestampAssigner, WatermarkStrategy}
 import org.apache.flink.api.common.functions.AggregateFunction
 import org.apache.flink.streaming.api.scala._
-import org.apache.flink.streaming.api.scala.function.{AllWindowFunction, ProcessAllWindowFunction, WindowFunction}
+import org.apache.flink.streaming.api.scala.function.{AllWindowFunction, ProcessAllWindowFunction, ProcessWindowFunction, WindowFunction}
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow
@@ -117,8 +117,22 @@ object WindowFunctions {
   }
 
 
+  class CountByWindow_v2 extends ProcessWindowFunction[ServerEvent, String, String, TimeWindow] {
+    override def process(key: String, context: Context, elements: Iterable[ServerEvent], out: Collector[String]): Unit = {
+      out.collect(s"$key, ${context.window}, ${elements.size}")
+    }
+  }
+
+  def demoCountByTypeByWindow_v2(): Unit = {
+    val finalStream = threeSecondsTumblingWindowByType.process(new CountByWindow_v2)
+    finalStream.print()
+    env.execute()
+  }
+
+
+
   def main(args: Array[String]): Unit = {
-    demoCountByTypeByWindow()
+    demoCountByTypeByWindow_v2()
   }
 
 }
