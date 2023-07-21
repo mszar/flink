@@ -2,7 +2,7 @@ package part2datastreams
 
 import generators.gaming.{PlayerRegistered, ServerEvent}
 import generators.shopping._
-import org.apache.flink.api.common.eventtime.{SerializableTimestampAssigner, WatermarkStrategy}
+import org.apache.flink.api.common.eventtime.{SerializableTimestampAssigner, Watermark, WatermarkGenerator, WatermarkOutput, WatermarkStrategy}
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.scala.function.ProcessAllWindowFunction
 import org.apache.flink.streaming.api.windowing.assigners.{TumblingEventTimeWindows, TumblingProcessingTimeWindows}
@@ -56,10 +56,36 @@ object TimeBasedTransformations {
 
   }
 
+  class BoundedOutOfOrdernessGenerator(maxDelay: Long) extends WatermarkGenerator[ShoppingCartEvent] {
+    var currentMaxTimestamp: Long = 0L
+    override def onEvent(event: ShoppingCartEvent, eventTimestamp: Long, output: WatermarkOutput): Unit =
+      currentMaxTimestamp = Math.max(currentMaxTimestamp, event.time.toEpochMilli)
+
+    override def onPeriodicEmit(output: WatermarkOutput): Unit =
+      output.emitWatermark(new Watermark(currentMaxTimestamp - maxDelay - 1))
+  }
+
+  def demoEventTime_v2(): Unit = {
+    val groupedEventsByWindow = shoppingCartEvents
+      .assignTimestampsAndWatermarks(
+        WatermarkStrategy
+          .forGenerator(_ => new BoundedOutOfOrdernessGenerator(500L))
+          .withTimestampAssigner(new SerializableTimestampAssigner[ShoppingCartEvent] {
+            override def extractTimestamp(element: ShoppingCartEvent, recordTimestamp: Long): Long = element.time.toEpochMilli
+          })
+      )
+      .windowAll(TumblingEventTimeWindows.of(Time.seconds(3)))
+
+    def countEventsByWindow: DataStream[String] = groupedEventsByWindow.process(new CountByWindowAll)
+
+    countEventsByWindow.print()
+    env.execute()
+
+  }
 
 
   def main(args: Array[String]): Unit = {
-    demoEventTime()
+    demoEventTime_v2()
   }
 
 }
