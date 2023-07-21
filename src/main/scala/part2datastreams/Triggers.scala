@@ -42,13 +42,13 @@ object Triggers {
   def main(args: Array[String]): Unit = {
     demoPurgingTrigger()
   }
-
-}
-
-
-class CountByWindowAll extends ProcessAllWindowFunction[ShoppingCartEvent, String, TimeWindow] {
-  override def process(context: Context, elements: Iterable[ShoppingCartEvent], out: Collector[String]): Unit = {
-    val window = context.window
-    out.collect(s"Window [${window.getStart} - ${window.getEnd}] ${elements.size}")
+  
+  class CountByWindowAll extends ProcessAllWindowFunction[ShoppingCartEvent, String, TimeWindow] {
+    override def process(context: Context, elements: Iterable[ShoppingCartEvent], out: Collector[String]): Unit = {
+      val window = context.window
+      out.collect(s"Window [${window.getStart} - ${window.getEnd}] ${elements.size}")
+    }
   }
 }
+
+
